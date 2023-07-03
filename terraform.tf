@@ -1,7 +1,7 @@
 terraform {
   required_version = "1.4.6"
 
-  backend "s3" {}
+  #backend "s3" {}
 
   required_providers {
     aws = {
@@ -26,9 +26,16 @@ terraform {
 data "aws_caller_identity" "current" {} # used for accesing Account ID and ARN
 
 provider "aws" {
+  region = var.region
   default_tags {
     tags = {
-      iac_environment = var.iac_environment_tag
+      "cb:user"        = "acaternberg"
+      "cb:owner"       = "professional-services"
+      "cb:environment" = "demo"
+      "cb:environment"     = "ps-dev"
+      "ps-genetes/stack"   = "eks-tf"
+      "ps-genetes/cluster" = var.cluster_name
+      "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     }
   }
 }

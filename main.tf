@@ -1,3 +1,7 @@
+locals {
+  kubeconfig_file      = "kubeconfig-${var.cluster_name}.yaml"
+  kubeconfig_file_path = abspath("${path.root}/${local.kubeconfig_file}")
+}
 # create EKS cluster
 module "base" {
   source = "./base/"
@@ -7,8 +11,9 @@ module "base" {
   main_network_block      = var.main_network_block
   cluster_azs             = var.cluster_azs
   subnet_prefix_extension = var.subnet_prefix_extension
+  tags                    = var.tags
   zone_offset             = var.zone_offset
-  eks_managed_node_groups = var.eks_managed_node_groups
+  #eks_managed_node_groups = var.eks_managed_node_groups
   autoscaling_average_cpu = var.autoscaling_average_cpu
 }
 
@@ -38,4 +43,17 @@ module "config" {
   name_prefix                              = var.name_prefix
   admin_users                              = var.admin_users
   developer_users                          = var.developer_users
+}
+
+#---------------------------------------------------------------
+# Generating kubeconfig file
+#---------------------------------------------------------------
+
+#https://www.bitslovers.com/terraform-null-resource/
+resource "null_resource" "update_kubeconfig" {
+  depends_on = [module.base]
+
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --name ${var.cluster_name} --kubeconfig ${local.kubeconfig_file} --region ${var.region}"
+  }
 }

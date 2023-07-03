@@ -1,26 +1,61 @@
 # create some variables
-variable "eks_managed_node_groups" {
-  type        = map(any)
-  description = "Map of EKS managed node group definitions to create"
-}
+#variable "eks_managed_node_groups" {
+#  type        = map(any)
+#  description = "Map of EKS managed node group definitions to create"
+#}
 variable "autoscaling_average_cpu" {
   type        = number
   description = "Average CPU threshold to autoscale EKS EC2 instances."
 }
+
+
+locals {
+  s3_backup_name            = "${var.cluster_name}-backups"
+  s3_artifacts_name         = "${var.cluster_name}-artifacts"
+  s3_bucket_list            = [local.s3_backup_name, local.s3_artifacts_name]
+  cidr_blocks_k8s_whitelist = ["0.0.0.0/0"]
+}
+
 
 # create EKS cluster
 module "cluster" {
   source  = "terraform-aws-modules/eks/aws"
   version = "19.13.1"
 
-  cluster_name                    = var.cluster_name
-  cluster_version                 = "1.26"
-  cluster_endpoint_private_access = true
-  cluster_endpoint_public_access  = true
-  subnet_ids                      = module.vpc.private_subnets
-  vpc_id                          = module.vpc.vpc_id
-  eks_managed_node_groups         = var.eks_managed_node_groups
-
+  cluster_name                         = var.cluster_name
+  cluster_version                      = "1.26"
+  cluster_endpoint_private_access      = true
+  cluster_endpoint_public_access       = true
+  cluster_endpoint_public_access_cidrs = local.cidr_blocks_k8s_whitelist
+  cluster_tags                         = var.tags
+  subnet_ids                           = module.vpc.private_subnets
+  vpc_id                               = module.vpc.vpc_id
+  #eks_managed_node_groups         = var.eks_managed_node_groups
+  eks_managed_node_groups              = {
+    # Default node group - as provided by AWS EKS
+    ci-mg_k8sApps = {
+      node_group_name = "acaternberg-ci-managed-k8s-apps"
+      #https://aws.amazon.com/ec2/instance-types/
+      instance_types  = ["t3.large"]
+      min_size        = 1
+      max_size        = 6
+      desired_size    = 1
+    },
+    ci-controllers = {
+      node_group_name = "acaternberg-ci-controllers"
+      min_size     = 1
+      max_size     = 3
+      desired_size = 1
+      instance_types = ["t3.large"]
+    },
+    ci-agents = {
+      node_group_name = "acaternberg-ci-agents"
+      min_size     = 1
+      max_size     = 3
+      desired_size = 1
+      instance_types = ["t3.large"]
+    }
+  }
   node_security_group_additional_rules = {
     # allow connections from ALB security group
     ingress_allow_access_from_alb_sg = {
@@ -89,9 +124,83 @@ module "eks_external_dns_iam" {
   }
 }
 
+
+#---------------------------------------------------------------
+# Custom IAM roles for Node Group Cloudbees Apps
+#---------------------------------------------------------------
+
+data "aws_iam_policy_document" "managed_ng_assume_role_policy" {
+  statement {
+    sid = "EKSWorkerAssumeRole"
+
+    actions = [
+      "sts:AssumeRole",
+    ]
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "managed_ng" {
+  name                  = "managed-node-role"
+  description           = "EKS Managed Node group IAM Role"
+  assume_role_policy    = data.aws_iam_policy_document.managed_ng_assume_role_policy.json
+  path                  = "/"
+  force_detach_policies = true
+  managed_policy_arns   = [
+    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  ]
+  inline_policy {
+    name   = "CloudBees_CI"
+    policy = jsonencode(
+      {
+        "Version" : "2012-10-17",
+        "Statement" : [
+          {
+            "Sid" : "CBCIBackupPolicy1",
+            "Effect" : "Allow",
+            "Action" : [
+              "s3:PutObject",
+              "s3:GetObject",
+              "s3:DeleteObject"
+            ],
+            "Resource" : "arn:aws:s3:::${local.s3_backup_name}/cbci/*"
+          },
+          {
+            "Sid" : "CBCIBackupPolicy2",
+            "Effect" : "Allow",
+            "Action" : "s3:ListBucket",
+            "Resource" : "arn:aws:s3:::${local.s3_backup_name}"
+          },
+        ]
+      }
+    )
+  }
+  // we use aws provider default tags
+  //tags = var.tags
+}
+
+resource "aws_iam_instance_profile" "managed_ng" {
+  name = "managed-node-instance-profile-ci"
+  role = aws_iam_role.managed_ng.name
+  path = "/"
+
+  lifecycle {
+    create_before_destroy = false
+  }
+
+  //tags = var.tags
+}
+
+
 # set spot fleet Autoscaling policy
 resource "aws_autoscaling_policy" "eks_autoscaling_policy" {
-  count = length(var.eks_managed_node_groups)
+  count = length(module.cluster.eks_managed_node_groups)
 
   name                   = "${module.cluster.eks_managed_node_groups_autoscaling_group_names[count.index]}-autoscaling-policy"
   autoscaling_group_name = module.cluster.eks_managed_node_groups_autoscaling_group_names[count.index]
@@ -104,3 +213,5 @@ resource "aws_autoscaling_policy" "eks_autoscaling_policy" {
     target_value = var.autoscaling_average_cpu
   }
 }
+
+

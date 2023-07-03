@@ -1,2 +1,2 @@
-admin_users     = ["thomas-gray", "ursula-williams"]
-developer_users = ["melissa-oliver", "lex-oneil"]
+admin_users     = ["acaternberg"]
+developer_users = ["acaternberg"]

@@ -1,4 +1,4 @@
-dns_base_domain               = "eks.singh.cl"
+dns_base_domain               = "acaternberg.pscbdemos.com"
 ingress_gateway_name          = "aws-load-balancer-controller"
 ingress_gateway_iam_role      = "load-balancer-controller"
 ingress_gateway_chart_name    = "aws-load-balancer-controller"

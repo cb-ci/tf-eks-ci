@@ -19,6 +19,10 @@ variable "subnet_prefix_extension" {
   type        = number
   description = "CIDR block bits extension to calculate CIDR blocks of each subnetwork."
 }
+variable "tags" {
+  type        = map
+  description = "aws tags to set"
+}
 variable "zone_offset" {
   type        = number
   description = "CIDR block bits extension offset to calculate Public subnets, avoiding collisions with Private subnets."

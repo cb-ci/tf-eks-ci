@@ -3,10 +3,11 @@ variable "cluster_name" {
   type        = string
   description = "EKS cluster name."
 }
-variable "iac_environment_tag" {
+variable "region" {
   type        = string
-  description = "AWS tag to indicate environment name of each infrastructure object."
+  description = "AWS region."
 }
+
 variable "name_prefix" {
   type        = string
   description = "Prefix to be used on each infrastructure object Name created in AWS."
@@ -27,10 +28,10 @@ variable "zone_offset" {
   type        = number
   description = "CIDR block bits extension offset to calculate Public subnets, avoiding collisions with Private subnets."
 }
-variable "eks_managed_node_groups" {
-  type        = map(any)
-  description = "Map of EKS managed node group definitions to create."
-}
+#variable "eks_managed_node_groups" {
+#  type        = map(any)
+#  description = "Map of EKS managed node group definitions to create."
+#}
 variable "autoscaling_average_cpu" {
   type        = number
   description = "Average CPU threshold to autoscale EKS EC2 instances."
@@ -106,4 +107,11 @@ variable "admin_users" {
 variable "developer_users" {
   type        = list(string)
   description = "List of Kubernetes developers."
+}
+variable "tags" {
+  type    = map
+  default = {
+    "owner"                                   = "acaternberg"
+  }
+  description = "aws tags to set"
 }

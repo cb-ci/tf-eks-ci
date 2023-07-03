@@ -1,4 +1,4 @@
-bucket               = "my-vibrant-and-nifty-app-infra"
+bucket               = "acaternberg-tf-state"
 key                  = "infra.json"
-region               = "us-west-2"
+region               = "us-east-1"
 workspace_key_prefix = "environment"

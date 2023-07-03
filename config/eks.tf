@@ -60,3 +60,5 @@ resource "helm_release" "spot_termination_handler" {
   namespace     = var.spot_termination_handler_chart_namespace
   wait_for_jobs = true
 }
+
+
