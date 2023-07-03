@@ -91,6 +91,10 @@ output "cluster_certificate_authority_data" {
   value = module.cluster.cluster_certificate_authority_data
 }
 
+output "cluster_name" {
+  value = module.cluster.cluster_name
+}
+
 # create IAM role for AWS Load Balancer Controller, and attach to EKS OIDC
 module "eks_ingress_iam" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
