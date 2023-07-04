@@ -1,4 +1,6 @@
 * https://medium.com/@nicosingh/build-an-eks-cluster-with-terraform-d35db8005963
+* EFS
+  * https://andrewtarry.com/posts/aws-kubernetes-with-efs/
 * https://cloudbees.slack.com/archives/D055L01ACT1/p1683818237758859 
 * OIDC with EKS/AWS 
   * https://medium.com/@forest.ruan/use-openid-connect-to-authenticate-aws-account-in-github-actions-455ff7710597 
@@ -6,7 +8,8 @@
 
 # AWS login/SSO
 
-```    aws sso login --profile infra-admin-acaternberg-sso
+```    
+   aws sso login --profile infra-admin-acaternberg-sso
  
 ```
 
@@ -117,3 +120,18 @@ aws route53 change-resource-record-sets \
 
 ## Make sure you can dig it
 dig +noall +answer $NEW_FQDN
+
+## How to delete a Kubernetes namespace stuck at Terminating Status
+see 
+* https://dev.to/jmarhee/how-to-delete-a-kubernetes-namespace-stuck-at-terminating-status-53o5
+* https://www.ibm.com/docs/en/cloud-private/3.2.0?topic=console-namespace-is-stuck-in-terminating-state
+
+> kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found 
+> aws resourcegroupstaggingapi get-resources --tag-filters "Key=cb:user,Values=acaternberg" --region us-east-1  | grep ResourceARN
+> 
+
+## Ingress can not be delted 
+> kubectl patch ingress <name-of-the-ingress> -n<your-namespace> -p '{"metadata":{"finalizers":[]}}' --type=merge
+> kubectl patch ingress sample-app-ingress-rules  -p '{"metadata":{"finalizers":[]}}' --type=merge
+> kctl get TargetGroupBinding k8s-sampleap-sampleap-ae2448355d -n sample-apps -o yaml 
+>  kubectl patch TargetGroupBinding k8s-sampleap-sampleap-ae2448355d   -p '{"metadata":{"finalizers":[]}}' --type=merge

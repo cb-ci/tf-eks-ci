@@ -22,6 +22,17 @@ module "cluster" {
   source  = "terraform-aws-modules/eks/aws"
   version = "19.13.1"
 
+  cluster_addons = {
+    coredns = {
+      most_recent = true
+    }
+    kube-proxy = {
+      most_recent = true
+    }
+    vpc-cni = {
+      most_recent = true
+    }
+  }
   cluster_name                         = var.cluster_name
   cluster_version                      = "1.26"
   cluster_endpoint_private_access      = true
@@ -43,18 +54,22 @@ module "cluster" {
     },
     ci-controllers = {
       node_group_name = "acaternberg-ci-controllers"
-      min_size     = 1
-      max_size     = 3
-      desired_size = 1
-      instance_types = ["t3.large"]
+      min_size        = 1
+      max_size        = 3
+      desired_size    = 1
+      instance_types  = ["t3.large"]
     },
     ci-agents = {
       node_group_name = "acaternberg-ci-agents"
-      min_size     = 1
-      max_size     = 3
-      desired_size = 1
-      instance_types = ["t3.large"]
+      min_size        = 1
+      max_size        = 3
+      desired_size    = 1
+      instance_types  = ["t3.large"]
     }
+  }
+  eks_managed_node_group_defaults = {
+    instance_types = ["t3.large"]
+    vpc_security_group_ids = [module.vpc.default_vpc_default_security_group_id]
   }
   node_security_group_additional_rules = {
     # allow connections from ALB security group

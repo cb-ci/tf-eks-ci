@@ -25,6 +25,16 @@ terraform {
 
 data "aws_caller_identity" "current" {} # used for accesing Account ID and ARN
 
+provider "kubernetes" {
+  host                   = module.base.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.base.cluster_certificate_authority_data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args = ["eks", "get-token", "--cluster-name", module.base.cluster_name]
+  }
+}
+
 provider "aws" {
   region = var.region
   default_tags {
