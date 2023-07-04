@@ -55,10 +55,13 @@ helm upgrade  -i  -f helm/config/values-development.yaml sample-app   ./helm
 -var-file=config-ingress-development.tfvars \
 -var-file=base-eks-development.tfvars
 
-
 aws iam delete-instance-profile --instance-profile-name managed-node-instance-profile-ci
 
+# NOTE: ALB ingress can not be deleted because of targetgroup, see issues below
+kubectl patch ingress <name-of-the-ingress> -n<your-namespace> -p '{"metadata":{"finalizers":[]}}' --type=merge
 ```
+
+
 
 # Issues 
 
@@ -91,35 +94,16 @@ Default secret no longer being generated for service account, with Kubernetes 1.
 │   on .terraform/modules/base.cluster/main.tf line 230, in resource "aws_iam_openid_connect_provider" "oidc_provider":
 │  230: resource "aws_iam_openid_connect_provider" "oidc_provider" {
 
-https://repost.aws/knowledge-center/eks-troubleshoot-oidc-and-irsa
+see https://repost.aws/knowledge-center/eks-troubleshoot-oidc-and-irsa
 
-aws eks describe-cluster --name acaternberg-tf --query "cluster.identity.oidc.issuer" --output text --region us-east-1 
+> aws eks describe-cluster --name acaternberg-tf --query "cluster.identity.oidc.issuer" --output text --region us-east-1 
 https://oidc.eks.us-east-1.amazonaws.com/id/786E622BE77FCFA93C7D8325E763C3B5
 
 List the IAM OIDC providers in your account. Replace 786E622BE77FCFA93C7D8325E763C3B5 (include < >) with the value returned from the previous command:
 
-aws iam list-open-id-connect-providers | grep 786E622BE77FCFA93C7D8325E763C3B5
+> aws iam list-open-id-connect-providers | grep 786E622BE77FCFA93C7D8325E763C3B5
 
 see https://cloudbees.slack.com/archives/GBX5K1DPF/p1687949985600689 
-
-
-
-
-# Get the LB previously created and set DNS
-
-## Get the (first) load balancer (at this point they're likely both the same)
-LB="$(kubectl get ingress -o json | jq -r '.items[0].status.loadBalancer.ingress[0].hostname')"
-
-sed -i "" -e 's/@@NEW_FQDN@@/'$NEW_FQDN'/' zone-records.json
-sed -i "" -e 's/@@LOAD_BALANCER_FQDN@@/'$LB'/' zone-records.json
-
-## Create CNAME
-aws route53 change-resource-record-sets \
---hosted-zone-id $HOSTED_ZONE_ID \
---change-batch file://zone-records.json
-
-## Make sure you can dig it
-dig +noall +answer $NEW_FQDN
 
 ## How to delete a Kubernetes namespace stuck at Terminating Status
 see 
@@ -127,11 +111,43 @@ see
 * https://www.ibm.com/docs/en/cloud-private/3.2.0?topic=console-namespace-is-stuck-in-terminating-state
 
 > kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found 
-> aws resourcegroupstaggingapi get-resources --tag-filters "Key=cb:user,Values=acaternberg" --region us-east-1  | grep ResourceARN
-> 
 
-## Ingress can not be delted 
+## How to list all aws resources by tag
+see 
+* https://stackoverflow.com/questions/52594359/aws-cli-search-resource-by-tags
+> aws resourcegroupstaggingapi get-resources --tag-filters "Key=cb:user,Values=acaternberg" --region us-east-1  | grep ResourceARN
+ 
+
+## Ingress can not be deleted  
+see 
+* https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/1629
+* https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/1629#issuecomment-731011683
 > kubectl patch ingress <name-of-the-ingress> -n<your-namespace> -p '{"metadata":{"finalizers":[]}}' --type=merge
 > kubectl patch ingress sample-app-ingress-rules  -p '{"metadata":{"finalizers":[]}}' --type=merge
 > kctl get TargetGroupBinding k8s-sampleap-sampleap-ae2448355d -n sample-apps -o yaml 
->  kubectl patch TargetGroupBinding k8s-sampleap-sampleap-ae2448355d   -p '{"metadata":{"finalizers":[]}}' --type=merge
+> kubectl patch TargetGroupBinding k8s-sampleap-sampleap-ae2448355d   -p '{"metadata":{"finalizers":[]}}' --type=merge
+
+
+## ALB
+
+while creation.:
+
+* created securityGroup - Will create SG for ALB
+* authorized securityGroup ingress - Will add rules to the ALB SG
+* created targetGroup - Will create targetGroup to be assigned to Loadbalancer.
+* created loadBalancer - Will create a LoadBalancer.
+* created listener - the port on which loadbalancer will be listening on.
+* created listener rule - Rules to forward to the targets (target groups in our case)
+* created targetGroupBinding - Will create a custom resource which maintains target groups and assignment/removal of ELB SG rule from worker node security group inbound rule.
+* authorized securityGroup ingress - adding ELB SG as an inbound rule to the worker node’s SG
+* registered targets - All the concerned targets are registered.
+  while Deleting:
+* deleting loadBalancer
+* deleted loadBalancer
+* deleting targetGroupBinding
+* deRegistering targets
+  #####This step is missing in logs###### - revoking securityGroup ingress
+* deleted targetGroupBinding
+* deleting targetGroup
+* deleted targetGroup
+* deleting securityGroup
