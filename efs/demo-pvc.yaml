@@ -1,0 +1,49 @@
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: efs-sc
+provisioner: efs.csi.aws.com
+mountOptions:
+  - tls
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-0eaf4bedd5bdc38d1
+  directoryPerms: "700"
+  gidRangeStart: "1000"
+  gidRangeEnd: "2000"
+  basePath: "/"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: dev-csi-data-volume
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - tls
+  persistentVolumeReclaimPolicy: Retain
+  claimRef:
+     #namespace: dev
+     name: dev-csi-data-volume-claim
+  storageClassName: efs-sc
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-0db450304e426be90
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dev-csi-data-volume-claim
+  #namespace: dev
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  resources:
+    requests:
+      storage: 100Gi
