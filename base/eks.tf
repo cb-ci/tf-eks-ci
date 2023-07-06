@@ -68,7 +68,7 @@ module "cluster" {
     }
   }
   eks_managed_node_group_defaults = {
-    instance_types = ["t3.large"]
+    instance_types         = ["t3.large"]
     vpc_security_group_ids = [module.vpc.default_vpc_default_security_group_id]
   }
   node_security_group_additional_rules = {
@@ -232,5 +232,3 @@ resource "aws_autoscaling_policy" "eks_autoscaling_policy" {
     target_value = var.autoscaling_average_cpu
   }
 }
-
-
