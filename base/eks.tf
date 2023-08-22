@@ -34,7 +34,7 @@ module "cluster" {
     }
   }
   cluster_name                         = var.cluster_name
-  cluster_version                      = "1.26"
+  cluster_version                      = var.cluster_version
   cluster_endpoint_private_access      = true
   cluster_endpoint_public_access       = true
   cluster_endpoint_public_access_cidrs = local.cidr_blocks_k8s_whitelist
@@ -154,6 +154,7 @@ data "aws_iam_policy_document" "managed_ng_assume_role_policy" {
 
     actions = [
       "sts:AssumeRole",
+      "sts:AssumeRoleWithWebIdentity",
     ]
     principals {
       type        = "Service"
@@ -163,7 +164,7 @@ data "aws_iam_policy_document" "managed_ng_assume_role_policy" {
 }
 
 resource "aws_iam_role" "managed_ng" {
-  name                  = "managed-node-role"
+  name                  = "managed-node-role-${var.cluster_name}"
   description           = "EKS Managed Node group IAM Role"
   assume_role_policy    = data.aws_iam_policy_document.managed_ng_assume_role_policy.json
   path                  = "/"
@@ -205,7 +206,7 @@ resource "aws_iam_role" "managed_ng" {
 }
 
 resource "aws_iam_instance_profile" "managed_ng" {
-  name = "managed-node-instance-profile-ci"
+  name = "managed-node-instance-profile-ci-${var.cluster_name}"
   role = aws_iam_role.managed_ng.name
   path = "/"
 

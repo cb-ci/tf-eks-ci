@@ -12,6 +12,11 @@
    aws sso login --profile infra-admin-acaternberg-sso #--region us-east-1
  
 ```
+# Prep
+
+```
+cp all.tfvars.template all.tfvars
+```
 
 # Create/Setup  EKS cluster
 ```
@@ -48,6 +53,9 @@ helm upgrade  -i  -f helm/config/values-development.yaml sample-app   ./helm
 # Destroy
 
 ```
+ terraform destroy  -var-file=all.tfvars
+ 
+ 
  terraform destroy  \
 -var-file=base-network-development.tfvars \
 -var-file=backend.tfvars \
@@ -87,6 +95,9 @@ Default secret no longer being generated for service account, with Kubernetes 1.
 ```
     aws iam delete-instance-profile --instance-profile-name managed-node-instance-profile-ci
 ```
+
+## │ Error: deleting EC2 Subnet (subnet-05aa264ad83287dc5): DependencyViolation: The subnet 'subnet-05aa264ad83287dc5' has dependencies and cannot be deleted.
+
 ## OIDC Provider LimitExceeded 
 ```
 ╷
@@ -161,3 +172,4 @@ while Deleting:
 * deleting targetGroup
 * deleted targetGroup
 * deleting securityGroup
+ 

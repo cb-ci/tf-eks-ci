@@ -43,7 +43,7 @@ provider "aws" {
       "cb:owner"       = "professional-services"
       "cb:environment" = "demo"
       "cb:environment"     = "ps-dev"
-      "ps-genetes/stack"   = "eks-tf"
+      "ps-genetes/stack"   = "eks-tf-02"
       "ps-genetes/cluster" = var.cluster_name
       "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     }

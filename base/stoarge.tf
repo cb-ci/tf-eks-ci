@@ -39,22 +39,53 @@ resource "kubernetes_storage_class_v1" "efs" {
 resource "aws_iam_policy" "node_efs_policy" {
   name        = "eks_node_efs-${var.cluster_name}"
   path        = "/"
-  description = "Policy for EFKS nodes to use EFS"
+  description = "Policy for EKS nodes to use EFS"
 
   policy = jsonencode({
     "Statement" : [
       {
+        "Effect" : "Allow",
         "Action" : [
-          "elasticfilesystem:DescribeMountTargets",
-          "elasticfilesystem:DescribeFileSystems",
           "elasticfilesystem:DescribeAccessPoints",
-          "elasticfilesystem:CreateAccessPoint",
-          "elasticfilesystem:DeleteAccessPoint",
+          "elasticfilesystem:DescribeFileSystems",
+          "elasticfilesystem:DescribeMountTargets",
           "ec2:DescribeAvailabilityZones"
         ],
+        "Resource" : "*"
+      },
+      {
         "Effect" : "Allow",
+        "Action" : [
+          "elasticfilesystem:CreateAccessPoint"
+        ],
         "Resource" : "*",
-        "Sid" : ""
+        "Condition" : {
+          "StringLike" : {
+            "aws:RequestTag/efs.csi.aws.com/cluster" : "true"
+          }
+        }
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "elasticfilesystem:TagResource"
+        ],
+        "Resource" : "*",
+        "Condition" : {
+          "StringLike" : {
+            "aws:ResourceTag/efs.csi.aws.com/cluster" : "true"
+          }
+        }
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : "elasticfilesystem:DeleteAccessPoint",
+        "Resource" : "*",
+        "Condition" : {
+          "StringEquals" : {
+            "aws:ResourceTag/efs.csi.aws.com/cluster" : "true"
+          }
+        }
       }
     ],
     "Version" : "2012-10-17"
@@ -62,16 +93,20 @@ resource "aws_iam_policy" "node_efs_policy" {
   )
 }
 
-resource "aws_efs_file_system" "kube" {
-  creation_token = "eks-efs"
-}
+#resource "aws_efs_file_system" "kube" {
+#  creation_token = "eks-efs"
+#}
 
-resource "aws_efs_mount_target" "mount" {
-  file_system_id = aws_efs_file_system.kube.id
-  subnet_id = each.key
-  for_each = toset(module.vpc.private_subnets )
-  security_groups = [aws_security_group.efs.id]
-}
+##see https://stackoverflow.com/questions/48817967/aws-terraform-filter-specific-subnets-by-matching-substring-in-tag-name/48818168#48818168
+#resource "aws_efs_mount_target" "mount" {
+#  depends_on      = [module.vpc]
+#  ##subnet_id       = each.value
+#  file_system_id  = aws_efs_file_system.kube.id
+#  subnet_id       = each.key
+#  for_each        = toset(data.aws_subnets.private_subnet.ids)
+#  security_groups = [aws_security_group.efs.id]
+#}
+
 
 module "efs" {
   source  = "terraform-aws-modules/efs/aws"

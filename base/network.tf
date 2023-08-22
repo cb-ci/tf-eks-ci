@@ -3,6 +3,10 @@ variable "cluster_name" {
   type        = string
   description = "EKS cluster name."
 }
+variable "cluster_version" {
+  type        = string
+  description = "EKS cluster version."
+}
 variable "name_prefix" {
   type        = string
   description = "Prefix to be used on each infrastructure object Name created in AWS."
@@ -37,6 +41,25 @@ data "aws_availability_zones" "available_azs" {
   }
 }
 
+
+# deprecated
+#data "aws_subnet_ids" "all" {
+#  vpc_id = module.vpc.vpc_id
+#
+#  tags = {
+#    Name = "*internal*"
+#  }
+#}
+
+# Private Subnets
+data "aws_subnets" "private_subnet" {
+  filter {
+    name   = "vpc-id"
+    values = [module.vpc.vpc_id]
+  }
+}
+
+
 # reserve Elastic IP to be used in our NAT gateway
 resource "aws_eip" "nat_gw_elastic_ip" {
   vpc = true
@@ -56,18 +79,18 @@ module "vpc" {
   azs  = data.aws_availability_zones.available_azs.names
 
   private_subnets = [
-    # this loop will create a one-line list as ["10.0.0.0/20", "10.0.16.0/20", "10.0.32.0/20", ...]
-    # with a length depending on how many Zones are available
-    for zone_id in data.aws_availability_zones.available_azs.zone_ids :
-    cidrsubnet(var.main_network_block, var.subnet_prefix_extension, index(data.aws_availability_zones.available_azs.zone_ids, zone_id))
+  # this loop will create a one-line list as ["10.0.0.0/20", "10.0.16.0/20", "10.0.32.0/20", ...]
+  # with a length depending on how many Zones are available
+  for zone_id in data.aws_availability_zones.available_azs.zone_ids :
+  cidrsubnet(var.main_network_block, var.subnet_prefix_extension, index(data.aws_availability_zones.available_azs.zone_ids, zone_id))
   ]
 
   public_subnets = [
-    # this loop will create a one-line list as ["10.0.128.0/20", "10.0.144.0/20", "10.0.160.0/20", ...]
-    # with a length depending on how many Zones are available
-    # there is a zone Offset variable, to make sure no collisions are present with private subnet blocks
-    for zone_id in data.aws_availability_zones.available_azs.zone_ids :
-    cidrsubnet(var.main_network_block, var.subnet_prefix_extension, index(data.aws_availability_zones.available_azs.zone_ids, zone_id) + var.zone_offset)
+  # this loop will create a one-line list as ["10.0.128.0/20", "10.0.144.0/20", "10.0.160.0/20", ...]
+  # with a length depending on how many Zones are available
+  # there is a zone Offset variable, to make sure no collisions are present with private subnet blocks
+  for zone_id in data.aws_availability_zones.available_azs.zone_ids :
+  cidrsubnet(var.main_network_block, var.subnet_prefix_extension, index(data.aws_availability_zones.available_azs.zone_ids, zone_id) + var.zone_offset)
   ]
 
   # enable single NAT Gateway to save some money

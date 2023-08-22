@@ -3,11 +3,14 @@ variable "cluster_name" {
   type        = string
   description = "EKS cluster name."
 }
+variable "cluster_version" {
+  type        = string
+  description = "EKS cluster version."
+}
 variable "region" {
   type        = string
   description = "AWS region."
 }
-
 variable "name_prefix" {
   type        = string
   description = "Prefix to be used on each infrastructure object Name created in AWS."
@@ -92,6 +95,18 @@ variable "external_dns_chart_version" {
   type        = string
   description = "Chart Repo associated with external-dns service."
 }
+variable "workspace_key_prefix" {
+  type        = string
+  description = "workspace key prefix."
+}
+variable "key" {
+  type        = string
+  description = "s3 key file name."
+}
+variable "bucket" {
+  type        = string
+  description = "s3 state bucket name."
+}
 variable "external_dns_values" {
   type        = map(string)
   description = "Values map required by external-dns service."
@@ -115,3 +130,5 @@ variable "tags" {
   }
   description = "aws tags to set"
 }
+
+

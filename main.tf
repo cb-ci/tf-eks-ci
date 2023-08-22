@@ -5,7 +5,7 @@ locals {
 # create EKS cluster
 module "base" {
   source = "./base/"
-
+  cluster_version         = var.cluster_version
   cluster_name            = var.cluster_name
   name_prefix             = var.name_prefix
   main_network_block      = var.main_network_block
