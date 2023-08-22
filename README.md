@@ -15,7 +15,7 @@
 # Prep
 
 ```
-cp all.tfvars.template all.tfvars
+cp renameme_all.tfvars all.tfvars
 ```
 
 # Create/Setup  EKS cluster
