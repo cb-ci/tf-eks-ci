@@ -1,15 +1,16 @@
 ##################### backend.tfvars:
-bucket               = "acaternberg-tf-state"
+bucket               = "<YOUR_BUCKET>-tf-state"
 key                  = "infra.json"
-region               = "us-east-1"
+#region               = "us-east-1"
 workspace_key_prefix = "environment"
 
 ##################### base-eks-development.tfvars:
 autoscaling_average_cpu = 30
 
 ##################### base-network-development.tfvars:
-cluster_name            = "acaternberg-tf-01"
-name_prefix             = "acaternberg-tf-01"
+cluster_name            = "<YOUR_CLUSTER>-tf-01"
+name_prefix             = "<YOUR_CLUSTER>-tf-01"
+cluster_version         = "1.25"
 main_network_block      = "10.0.0.0/16"
 region                  = "us-east-1"
 cluster_azs             = ["us-east-1a", "us-east-1b", "us-east-1c"]
@@ -40,11 +41,11 @@ external_dns_values = {
 }
 
 ##################### config-iam-development.tfvars:
-admin_users     = ["acaternberg"]
-developer_users = ["acaternberg"]
+admin_users     = ["<YOUR_ADMIN_USER>"] # e.g admin
+developer_users = ["<DEVELOPER_USER>"] # e.g. benny
 
 ##################### config-ingress-development.tfvars:
-dns_base_domain               = "acaternberg.pscbdemos.com"
+dns_base_domain               = "<YOUR_DNS_ZONE>.pscbdemos.com"
 ingress_gateway_name          = "aws-load-balancer-controller"
 ingress_gateway_iam_role      = "load-balancer-controller"
 ingress_gateway_chart_name    = "aws-load-balancer-controller"
