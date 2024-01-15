@@ -124,11 +124,9 @@ variable "developer_users" {
   description = "List of Kubernetes developers."
 }
 variable "tags" {
-  type    = map
-  default = {
-    "owner"                                   = "acaternberg"
-  }
-  description = "aws tags to set"
+  description = "Tags to apply to resources"
+  default     = {}
+  type        = map(string)
 }
 
 

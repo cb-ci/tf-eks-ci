@@ -64,9 +64,12 @@ data "aws_subnets" "private_subnet" {
 resource "aws_eip" "nat_gw_elastic_ip" {
   vpc = true
 
-  tags = {
-    Name = "${var.cluster_name}-nat-eip"
-  }
+  tags = merge(
+    {
+      "Name" = "${var.cluster_name}-nat-eip"
+    },
+    var.tags,
+  )
 }
 
 # create VPC using the official AWS module

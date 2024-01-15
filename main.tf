@@ -43,6 +43,7 @@ module "config" {
   name_prefix                              = var.name_prefix
   admin_users                              = var.admin_users
   developer_users                          = var.developer_users
+  tags                                     = var.tags
 }
 
 #---------------------------------------------------------------

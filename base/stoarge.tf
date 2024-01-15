@@ -11,6 +11,7 @@ resource "aws_security_group" "efs" {
     protocol    = "TCP"
     cidr_blocks = [module.vpc.vpc_cidr_block]
   }
+  tags = var.tags
 }
 
 
@@ -91,6 +92,7 @@ resource "aws_iam_policy" "node_efs_policy" {
     "Version" : "2012-10-17"
   }
   )
+  tags = var.tags
 }
 
 #resource "aws_efs_file_system" "kube" {
@@ -129,5 +131,10 @@ module "efs" {
     }
   }
 
-  //tags = local.tags
+  tags = merge(
+    {
+      "Name" = "${var.cluster_name}-efs"
+    },
+    var.tags,
+  )
 }

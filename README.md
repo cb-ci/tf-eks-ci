@@ -8,10 +8,19 @@
 
 # AWS login/SSO
 
-```    
-   aws sso login --profile infra-admin-acaternberg-sso #--region us-east-1
+```  
+   
+   aws sso login --profile infra-admin-324005994172  --region us-east-1
  
 ```
+
+# Kubeconfig manual update
+
+```
+aws eks update-kubeconfig --name acaternberg-tf-02 --kubeconfig kubeconfig-acaternberg-tf-02.yaml --region us-east-1
+export KUBECONFIG=$(pwd)/kubeconfig-acaternberg-tf-02.yaml
+```
+
 # Prep
 
 ```
@@ -172,4 +181,9 @@ while Deleting:
 * deleting targetGroup
 * deleted targetGroup
 * deleting securityGroup
+
+
+# EFS
+
+see https://github.com/kubernetes-sigs/aws-efs-csi-driver/blob/master/examples/kubernetes/dynamic_provisioning/README.md 
  

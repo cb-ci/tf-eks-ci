@@ -23,6 +23,10 @@ variable "ingress_gateway_chart_version" {
   type        = string
   description = "Ingress Gateway Helm chart version."
 }
+variable "tags" {
+  type        = map
+  description = "aws tags to set"
+}
 
 # get (externally configured) DNS Zone
 # ATTENTION: if you don't have a Route53 Zone already, replace this data by a new resource
@@ -36,9 +40,12 @@ resource "aws_acm_certificate" "eks_domain_cert" {
   subject_alternative_names = ["*.${var.dns_base_domain}"]
   validation_method         = "DNS"
 
-  tags = {
-    Name = "${var.dns_base_domain}"
-  }
+  tags = merge(
+    {
+      "Name" = "${var.dns_base_domain}"
+    },
+    var.tags,
+  )
 }
 resource "aws_route53_record" "eks_domain_cert_validation_dns" {
   for_each = {

@@ -1,0 +1,71 @@
+OIDC 21F4BF20906FD7358C4E7706EE17981F
+Got VPC_ID: vpc-006a10aaef2df93e7 for cluster acaternberg-tf-02
+CIDR_RANGE 10.0.0.0/16 for vpc-006a10aaef2df93e7
+Security_groud_id: sg-0774230cf0b6dabea
+{
+    "Return": true,
+    "SecurityGroupRules": [
+        {
+            "SecurityGroupRuleId": "sgr-0fd1a442888de9e53",
+            "GroupId": "sg-0774230cf0b6dabea",
+            "GroupOwnerId": "324005994172",
+            "IsEgress": false,
+            "IpProtocol": "tcp",
+            "FromPort": 2049,
+            "ToPort": 2049,
+            "CidrIpv4": "10.0.0.0/16"
+        }
+    ]
+}
+created EFS filesystem with ID: {
+    "OwnerId": "324005994172",
+    "CreationToken": "8ed85dce-8b69-4da1-8736-48142d5d4650",
+    "FileSystemId": "fs-0151dd7e844597e4e",
+    "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:324005994172:file-system/fs-0151dd7e844597e4e",
+    "CreationTime": "2023-12-08T16:55:13+01:00",
+    "LifeCycleState": "creating",
+    "NumberOfMountTargets": 0,
+    "SizeInBytes": {
+        "Value": 0,
+        "ValueInIA": 0,
+        "ValueInStandard": 0
+    },
+    "PerformanceMode": "generalPurpose",
+    "Encrypted": false,
+    "ThroughputMode": "bursting",
+    "Tags": [
+        {
+            "Key": "cb:environment",
+            "Value": "tmp-acaternberg-tf-02"
+        },
+        {
+            "Key": "cb:owner",
+            "Value": "professional-services"
+        },
+        {
+            "Key": "cb:user",
+            "Value": "acaternberg"
+        },
+        {
+            "Key": "ps-genetes/cluster",
+            "Value": "acaternberg-tf-02"
+        },
+        {
+            "Key": "ps-genetes/created",
+            "Value": "manual"
+        }
+    ]
+}
+NAME                         STATUS   ROLES    AGE   VERSION
+ip-10-0-15-9.ec2.internal    Ready    <none>   8h    v1.25.11-eks-a5565ad
+ip-10-0-24-95.ec2.internal   Ready    <none>   8h    v1.25.11-eks-a5565ad
+-------------------------------------------------------------------
+|                         DescribeSubnets                         |
++------------------+-----------------+----------------------------+
+| AvailabilityZone |    CidrBlock    |         SubnetId           |
++------------------+-----------------+----------------------------+
+|  us-east-1b      |  10.0.144.0/20  |  subnet-0ef90066e803f7a22  |
+|  us-east-1a      |  10.0.0.0/20    |  subnet-0c5ba202da7524667  |
+|  us-east-1b      |  10.0.16.0/20   |  subnet-045574e5709ce52eb  |
+|  us-east-1a      |  10.0.128.0/20  |  subnet-08727869fa9666890  |
++------------------+-----------------+----------------------------+

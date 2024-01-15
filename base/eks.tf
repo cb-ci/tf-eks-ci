@@ -44,31 +44,31 @@ module "cluster" {
   #eks_managed_node_groups         = var.eks_managed_node_groups
   eks_managed_node_groups              = {
     # Default node group - as provided by AWS EKS
-    ci-mg_k8sApps = {
-      node_group_name = "acaternberg-ci-managed-k8s-apps"
-      #https://aws.amazon.com/ec2/instance-types/
-      instance_types  = ["t3.large"]
-      min_size        = 1
-      max_size        = 6
-      desired_size    = 1
-    },
+#    ci-mg_k8sApps = {
+#      node_group_name = "acaternberg-ci-managed-k8s-apps"
+#      #https://aws.amazon.com/ec2/instance-types/
+#      instance_types  = ["t3.large"]
+#      min_size        = 1
+#      max_size        = 6
+#      desired_size    = 1
+#    },
     ci-controllers = {
       node_group_name = "acaternberg-ci-controllers"
-      min_size        = 1
-      max_size        = 3
-      desired_size    = 1
-      instance_types  = ["t3.large"]
+      min_size        = 2 #0
+      max_size        = 2
+      desired_size    = 2 #0
+      instance_types  = ["m5d.xlarge"]
     },
     ci-agents = {
       node_group_name = "acaternberg-ci-agents"
-      min_size        = 1
-      max_size        = 3
-      desired_size    = 1
+      min_size        = 0
+      max_size        = 1
+      desired_size    = 0
       instance_types  = ["t3.large"]
     }
   }
   eks_managed_node_group_defaults = {
-    instance_types         = ["t3.large"]
+    instance_types         = ["t3.xlarge"]
     vpc_security_group_ids = [module.vpc.default_vpc_default_security_group_id]
   }
   node_security_group_additional_rules = {
@@ -98,7 +98,26 @@ module "cluster" {
       self      = true
     }
   }
+  tags = var.tags
 }
+
+
+#module "cluster_autoscaler_irsa_role" {
+#  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+#  version = "5.3.1"
+#
+#  role_name                        = "cluster-autoscaler"
+#  attach_cluster_autoscaler_policy = true
+#  cluster_autoscaler_cluster_ids   = [module.cluster.cluster_id]
+#
+#  oidc_providers = {
+#    ex = {
+#      provider_arn               = module.cluster.oidc_provider_arn
+#      namespace_service_accounts = ["kube-system:cluster-autoscaler"]
+#    }
+#  }
+#}
+
 output "cluster_endpoint" {
   value = module.cluster.cluster_endpoint
 }
@@ -201,8 +220,7 @@ resource "aws_iam_role" "managed_ng" {
       }
     )
   }
-  // we use aws provider default tags
-  //tags = var.tags
+  tags = var.tags
 }
 
 resource "aws_iam_instance_profile" "managed_ng" {
@@ -214,7 +232,7 @@ resource "aws_iam_instance_profile" "managed_ng" {
     create_before_destroy = false
   }
 
-  //tags = var.tags
+  tags = var.tags
 }
 
 

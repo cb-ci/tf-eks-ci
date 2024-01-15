@@ -37,15 +37,13 @@ provider "kubernetes" {
 
 provider "aws" {
   region = var.region
-  default_tags {
-    tags = {
-      "cb:user"        = "acaternberg"
-      "cb:owner"       = "professional-services"
-      "cb:environment" = "demo"
-      "cb:environment"     = "ps-dev"
-      "ps-genetes/stack"   = "eks-tf-02"
-      "ps-genetes/cluster" = var.cluster_name
-      "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    }
-  }
+#  default_tags {
+#    tags = {
+#      "cb-user"        = "acaternberg"
+#      "cb-owner"       = "professional-services"
+#      "cb-environment"     = var.cluster_name
+#      "ps-genetes/cluster" = var.cluster_name
+#      "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+#    }
+#  }
 }
