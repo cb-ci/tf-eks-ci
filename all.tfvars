@@ -10,7 +10,7 @@ autoscaling_average_cpu = 30
 ##################### base-network-development.tfvars:
 cluster_name            = "acaternberg-tf-02"
 name_prefix             = "acaternberg-tf-02"
-cluster_version         = "1.25"
+cluster_version         = "1.27"
 main_network_block      = "10.0.0.0/16"
 region                  = "us-east-1"
 #cluster_azs             = ["us-east-1a", "us-east-1b", "us-east-1c"]
